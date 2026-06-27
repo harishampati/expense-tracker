@@ -111,6 +111,25 @@ body {
 }
 
 .topbar-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.topbar-right { display: flex; align-items: center; gap: 0.6rem; }
+.topbar-logout {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; color: #555; font-size: 1.1rem;
+  background: #1a1a1a; border: 1px solid #222; text-decoration: none;
+  transition: all 0.2s;
+}
+.topbar-logout:hover { background: #2a0d0d; color: #ff5252; border-color: #ff5252; }
+.mobile-menu-btn {
+  display: none; width: 38px; height: 38px;
+  background: #1a1a1a; border: 1px solid #222; border-radius: 10px;
+  color: #aaa; font-size: 1.2rem; cursor: pointer;
+  align-items: center; justify-content: center;
+}
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 99;
+}
 
 .btn-add {
   background: linear-gradient(135deg, #00e676, #00c853);
@@ -976,14 +995,20 @@ input[type="month"].input-field::-webkit-calendar-picker-indicator { filter: inv
 }
 
 @media (max-width: 992px) {
-  .sidebar { width: 70px; }
-  .sidebar-brand span, .nav-item span, .user-info { display: none; }
-  .sidebar-brand { justify-content: center; padding: 1.5rem 0; }
-  .nav-item { justify-content: center; padding: 0.75rem; }
-  .main-content { margin-left: 70px; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    width: 240px;
+    z-index: 200;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .mobile-menu-btn { display: flex; }
+  .main-content { margin-left: 0; }
   .charts-grid { grid-template-columns: 1fr; }
   .row-layout { flex-direction: column; }
   .form-card-sm { width: 100%; }
+  .btn-add-label { display: none; }
 }
 
 @media (max-width: 576px) {

@@ -64,8 +64,12 @@
 
 <div class="main-content">
   <div class="topbar">
+    <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="bi bi-list"></i></button>
     <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
-    <a href="{{ url_for('add') }}" class="btn-add"><i class="bi bi-plus-lg me-1"></i>New Transaction</a>
+    <div class="topbar-right">
+      <a href="{{ url_for('add') }}" class="btn-add"><i class="bi bi-plus-lg me-1"></i><span class="btn-add-label">New</span></a>
+      <a href="{{ url_for('logout') }}" class="topbar-logout" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+    </div>
   </div>
   <div class="flash-wrap">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -84,8 +88,22 @@
 {% block auth_content %}{% endblock %}
 {% endif %}
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var btn = document.getElementById('mobileMenuBtn');
+  var sidebar = document.querySelector('.sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  if(!btn) return;
+  function open(){ sidebar.classList.add('open'); overlay.classList.add('open'); }
+  function close(){ sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+  btn.addEventListener('click', function(){ sidebar.classList.contains('open') ? close() : open(); });
+  overlay.addEventListener('click', close);
+  document.querySelectorAll('.nav-item').forEach(function(a){ a.addEventListener('click', close); });
+})();
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

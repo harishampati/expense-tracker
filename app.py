@@ -22,7 +22,9 @@ def handle_500(e):
     return render_template("error.html"), 500
 
 if os.environ.get("RAILWAY_ENVIRONMENT"):
-    DATABASE = "/tmp/database.db"
+    # Use /data volume if mounted (persistent), else fall back to /tmp
+    data_dir = "/data" if os.path.isdir("/data") else "/tmp"
+    DATABASE = os.path.join(data_dir, "database.db")
 else:
     DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
 
