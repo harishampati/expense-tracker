@@ -12,6 +12,7 @@
 <body>
 
 {% if current_user.is_authenticated %}
+
 <!-- Sidebar -->
 <div class="sidebar">
   <div class="sidebar-brand">
@@ -58,7 +59,8 @@
 </div>
 
 {% else %}
-<!-- Auth pages: no sidebar -->
+
+<!-- Auth pages (login / register) — no sidebar -->
 <div class="auth-page">
   <div class="px-4 pt-3" style="max-width:480px;margin:0 auto;">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -69,8 +71,9 @@
       {% endfor %}{% endif %}
     {% endwith %}
   </div>
-  {% block content %}{% endblock %}
+  {% block auth_content %}{% endblock %}
 </div>
+
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

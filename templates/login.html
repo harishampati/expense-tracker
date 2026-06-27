@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Login – ExpenseIQ{% endblock %}
 
-{% block content %}
+{% block auth_content %}
 <div class="auth-wrapper">
   <div class="auth-card">
     <div class="auth-logo"><i class="bi bi-piggy-bank-fill"></i></div>
@@ -33,4 +33,4 @@
     <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Sign up</a></p>
   </div>
 </div>
-{% endblock %}
+{% endblock auth_content %}
