@@ -144,7 +144,7 @@ def login():
         username = request.form.get("username","").strip()
         password = request.form.get("password","").strip()
         db = get_db()
-        user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+        user = db.execute("SELECT * FROM users WHERE username=? OR email=?", (username, username)).fetchone()
         if not user or not check_password_hash(user["password"], password):
             flash("Invalid username or password.", "danger")
             return render_template("login.html", form=request.form)
