@@ -10,7 +10,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = "expenseiq_super_secret_2026"
 
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
+if os.environ.get("RAILWAY_ENVIRONMENT"):
+    DATABASE = "/tmp/database.db"
+else:
+    DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
 
 # ── Flask-Login setup ──────────────────────────────────
 login_manager = LoginManager()
