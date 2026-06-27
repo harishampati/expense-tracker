@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<!-- Summary Cards -->
+<!-- Stats -->
 <div class="stats-grid">
   <div class="stat-card stat-blue">
     <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
@@ -24,60 +24,84 @@
     <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
     <div class="stat-info">
       <div class="stat-label">This Month</div>
-      <div class="stat-value">
-        ${{ "%.2f"|format(expenses | selectattr('date', 'defined') | list | sum(attribute='amount') if expenses else 0) }}
-      </div>
+      <div class="stat-value">${{ "%.2f"|format(month_total) }}</div>
     </div>
   </div>
-  <div class="stat-card stat-orange">
-    <div class="stat-icon"><i class="bi bi-tag"></i></div>
+  <div class="stat-card {% if budget > 0 and month_total > budget %}stat-red{% else %}stat-orange{% endif %}">
+    <div class="stat-icon"><i class="bi bi-bullseye"></i></div>
     <div class="stat-info">
-      <div class="stat-label">Categories</div>
-      <div class="stat-value">{{ expenses | map(attribute='category') | list | unique | list | length }}</div>
+      <div class="stat-label">Monthly Budget</div>
+      <div class="stat-value">{% if budget > 0 %}${{ "%.2f"|format(budget) }}{% else %}Not set{% endif %}</div>
     </div>
   </div>
 </div>
 
-<!-- Search + Table -->
+<!-- Budget progress -->
+{% if budget > 0 %}
+<div class="budget-bar-wrap mt-4">
+  {% set pct = [(month_total / budget * 100), 100]|min|int %}
+  <div class="d-flex justify-content-between mb-1">
+    <span class="small text-muted">Budget used: ${{ "%.2f"|format(month_total) }} / ${{ "%.2f"|format(budget) }}</span>
+    <span class="small fw-bold {% if pct >= 90 %}text-danger{% elif pct >= 70 %}text-warning{% else %}text-success{% endif %}">{{ pct }}%</span>
+  </div>
+  <div class="budget-track">
+    <div class="budget-fill {% if pct >= 90 %}fill-danger{% elif pct >= 70 %}fill-warning{% else %}fill-ok{% endif %}"
+         style="width: {{ pct }}%"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Charts -->
+<div class="charts-grid mt-4">
+  <div class="chart-card">
+    <div class="chart-title"><i class="bi bi-pie-chart-fill me-2"></i>Spending by Category</div>
+    <div class="chart-body"><canvas id="categoryChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title"><i class="bi bi-graph-up me-2"></i>Monthly Spending</div>
+    <div class="chart-body"><canvas id="monthlyChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Expenses Table -->
 <div class="content-card mt-4">
   <div class="content-card-header">
     <h6 class="mb-0 fw-semibold"><i class="bi bi-list-ul me-2"></i>All Expenses</h6>
-    <form method="get" action="{{ url_for('index') }}" class="search-form">
-      <div class="search-wrap">
-        <i class="bi bi-search search-icon"></i>
-        <input type="text" name="search" class="search-input" placeholder="Search…" value="{{ search }}">
-        {% if search %}
-        <a href="{{ url_for('index') }}" class="search-clear"><i class="bi bi-x"></i></a>
-        {% endif %}
-      </div>
-    </form>
+    <div class="d-flex gap-2 flex-wrap">
+      <form method="get" action="{{ url_for('index') }}" class="search-form">
+        <div class="search-wrap">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" name="search" class="search-input" placeholder="Search…" value="{{ search }}">
+          {% if search %}<a href="{{ url_for('index') }}" class="search-clear"><i class="bi bi-x"></i></a>{% endif %}
+        </div>
+      </form>
+
+      <!-- Budget setter -->
+      <form method="post" action="{{ url_for('set_budget') }}" class="d-flex gap-1">
+        <input type="number" name="budget" class="search-input" placeholder="Set budget…"
+               style="width:140px" step="0.01" min="0" value="{{ budget if budget > 0 else '' }}">
+        <button class="action-btn edit-btn px-3" style="width:auto;border-radius:10px">Set</button>
+      </form>
+    </div>
   </div>
 
   {% if expenses %}
   <div class="table-responsive">
     <table class="fancy-table">
       <thead>
-        <tr>
-          <th>#</th>
-          <th>Title</th>
-          <th>Category</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
+        <tr><th>#</th><th>Title</th><th>Category</th><th>Amount</th><th>Date</th><th>Note</th><th>Actions</th></tr>
       </thead>
       <tbody>
         {% for exp in expenses %}
         <tr>
           <td class="row-num">{{ loop.index }}</td>
           <td class="row-title">{{ exp.title }}</td>
-          <td><span class="cat-badge cat-{{ exp.category | lower | replace(' ','') }}">{{ exp.category }}</span></td>
+          <td><span class="cat-badge cat-{{ exp.category|lower|replace(' ','') }}">{{ exp.category }}</span></td>
           <td class="row-amount">${{ "%.2f"|format(exp.amount) }}</td>
           <td class="row-date"><i class="bi bi-calendar3 me-1"></i>{{ exp.date }}</td>
+          <td class="row-note">{{ exp.note or '—' }}</td>
           <td class="row-actions">
-            <a href="{{ url_for('edit', expense_id=exp.id) }}" class="action-btn edit-btn">
-              <i class="bi bi-pencil"></i>
-            </a>
+            <a href="{{ url_for('edit', expense_id=exp.id) }}" class="action-btn edit-btn"><i class="bi bi-pencil"></i></a>
             <form method="post" action="{{ url_for('delete', expense_id=exp.id) }}" class="d-inline"
                   onsubmit="return confirm('Delete this expense?')">
               <button class="action-btn delete-btn"><i class="bi bi-trash"></i></button>
@@ -91,14 +115,90 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-    {% if search %}
-      <p>No results for <strong>"{{ search }}"</strong></p>
-    {% else %}
-      <p>No expenses yet.</p>
-      <a href="{{ url_for('add') }}" class="btn btn-add mt-2">Add your first expense</a>
-    {% endif %}
+    <p>{% if search %}No results for <strong>"{{ search }}"</strong>{% else %}No expenses yet. <a href="{{ url_for('add') }}">Add your first one!</a>{% endif %}</p>
   </div>
   {% endif %}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+const GREEN  = '#00e676';
+const GREEN2 = '#00c853';
+const GREEN3 = '#69f0ae';
+const GREEN4 = '#1de9b6';
+const GREEN5 = '#b9f6ca';
+const GREEN6 = '#00bfa5';
+const GREEN7 = '#76ff03';
+const GREEN8 = '#64dd17';
+
+// Category donut chart
+fetch('/api/chart/category')
+  .then(r => r.json())
+  .then(data => {
+    if (!data.labels.length) return;
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          data: data.data,
+          backgroundColor: [GREEN,GREEN2,GREEN3,GREEN4,GREEN5,GREEN6,GREEN7,GREEN8],
+          borderColor: '#111',
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#aaa', font: { family: 'Inter' } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` $${ctx.parsed.toFixed(2)}`
+            }
+          }
+        }
+      }
+    });
+  });
+
+// Monthly line chart
+fetch('/api/chart/monthly')
+  .then(r => r.json())
+  .then(data => {
+    if (!data.labels.length) return;
+    new Chart(document.getElementById('monthlyChart'), {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: 'Monthly Spending',
+          data: data.data,
+          borderColor: GREEN,
+          backgroundColor: 'rgba(0,230,118,0.08)',
+          pointBackgroundColor: GREEN,
+          pointRadius: 5,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#aaa', font: { family: 'Inter' } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` $${ctx.parsed.y.toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#555' }, grid: { color: '#1a1a1a' } },
+          y: { ticks: { color: '#555', callback: v => '$'+v }, grid: { color: '#1a1a1a' } }
+        }
+      }
+    });
+  });
+</script>
 {% endblock %}
