@@ -1,44 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Login – ExpenseIQ{% endblock %}
+{% block title %}Sign In – ExpenseIQ{% endblock %}
 
 {% block auth_content %}
-<div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="48" height="48" rx="14" fill="#00e676" fill-opacity="0.15"/>
-        <path d="M14 34 L24 14 L34 34" stroke="#00e676" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M17 28 H31" stroke="#00e676" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="24" cy="14" r="2.5" fill="#00e676"/>
-      </svg>
+<div class="auth-split">
+
+  <!-- Left branding panel -->
+  <div class="auth-brand-panel">
+    <div class="auth-brand-inner">
+      <div class="auth-big-logo">
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="72" height="72" rx="20" fill="url(#lg1)"/>
+          <path d="M36 18 L52 54 H20 Z" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M26 44 H46" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="36" cy="18" r="4" fill="#000"/>
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00e676"/>
+              <stop offset="1" stop-color="#00c853"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="auth-brand-name">ExpenseIQ</h1>
+      <p class="auth-brand-tag">Smart money. Clear picture.</p>
+
+      <div class="auth-features">
+        <div class="auth-feat"><i class="bi bi-bar-chart-fill"></i><span>Track every expense</span></div>
+        <div class="auth-feat"><i class="bi bi-bullseye"></i><span>Set & hit budgets</span></div>
+        <div class="auth-feat"><i class="bi bi-phone-fill"></i><span>Access anywhere</span></div>
+        <div class="auth-feat"><i class="bi bi-shield-fill-check"></i><span>Private & secure</span></div>
+      </div>
     </div>
-    <h4 class="auth-title">Welcome back</h4>
-    <p class="auth-sub">Sign in to your ExpenseIQ account</p>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for cat, msg in messages %}
-      <div class="alert-fancy alert-{{ 'success' if cat=='success' else 'error' }}">{{ msg }}</div>
-      {% endfor %}
-    {% endwith %}
-
-    <form method="post" action="{{ url_for('login') }}" novalidate>
-      <div class="form-group">
-        <label class="form-label-fancy">Username or Email</label>
-        <div class="input-fancy">
-          <i class="bi bi-person-fill input-icon"></i>
-          <input type="text" name="username" class="input-field" placeholder="Username or email address" required autofocus>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label-fancy">Password</label>
-        <div class="input-fancy">
-          <i class="bi bi-lock-fill input-icon"></i>
-          <input type="password" name="password" class="input-field" placeholder="••••••••" required>
-        </div>
-      </div>
-      <button type="submit" class="btn-fancy btn-fancy-primary w-100 mt-2"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</button>
-    </form>
-    <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
   </div>
+
+  <!-- Right form panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-inner">
+      <div class="auth-form-logo">
+        <svg width="40" height="40" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="72" height="72" rx="20" fill="url(#lg2)"/>
+          <path d="M36 18 L52 54 H20 Z" fill="none" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M26 44 H46" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="36" cy="18" r="4" fill="#000"/>
+          <defs>
+            <linearGradient id="lg2" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00e676"/>
+              <stop offset="1" stop-color="#00c853"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <h2 class="auth-form-title">Welcome back</h2>
+      <p class="auth-form-sub">Sign in to your account</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+        <div class="auth-alert auth-alert-{{ 'success' if cat=='success' else 'error' }}">
+          <i class="bi bi-{% if cat=='success' %}check-circle-fill{% else %}exclamation-triangle-fill{% endif %} me-2"></i>{{ msg }}
+        </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('login') }}" novalidate>
+        <div class="auth-field">
+          <label class="auth-label">Username or Email</label>
+          <div class="auth-input-wrap">
+            <i class="bi bi-person-fill auth-input-icon"></i>
+            <input type="text" name="username" class="auth-input" placeholder="Enter your username or email" required autofocus>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label">Password</label>
+          <div class="auth-input-wrap">
+            <i class="bi bi-lock-fill auth-input-icon"></i>
+            <input type="password" name="password" class="auth-input" placeholder="Enter your password" required>
+          </div>
+        </div>
+
+        <button type="submit" class="auth-submit-btn">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>New to ExpenseIQ?</span></div>
+      <a href="{{ url_for('register') }}" class="auth-secondary-btn">Create a free account</a>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

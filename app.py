@@ -2,6 +2,8 @@ import os
 import sqlite3
 import csv
 import io
+import traceback
+import logging
 from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, flash, g, jsonify, Response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -9,6 +11,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "expenseiq_pro_secret_2026"
+
+logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), "error.log"), level=logging.ERROR)
+
+@app.errorhandler(500)
+def handle_500(e):
+    tb = traceback.format_exc()
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "error.log"), "a") as f:
+        f.write(f"\n--- 500 on {request.url} ---\n{tb}\n")
+    return render_template("error.html"), 500
 
 if os.environ.get("RAILWAY_ENVIRONMENT"):
     DATABASE = "/tmp/database.db"
@@ -563,5 +574,5 @@ def export():
 # ── Entry point ────────────────────────────────────────
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 5050))
     app.run(debug=False, host="0.0.0.0", port=port)
