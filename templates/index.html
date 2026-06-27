@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – ExpenseIQ{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Summary Cards -->
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+    <div class="stat-info">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value">${{ "%.2f"|format(total) }}</div>
+    </div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+    <div class="stat-info">
+      <div class="stat-label">Total Expenses</div>
+      <div class="stat-value">{{ expenses|length }}</div>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+    <div class="stat-info">
+      <div class="stat-label">This Month</div>
+      <div class="stat-value">
+        ${{ "%.2f"|format(expenses | selectattr('date', 'defined') | list | sum(attribute='amount') if expenses else 0) }}
+      </div>
+    </div>
+  </div>
+  <div class="stat-card stat-orange">
+    <div class="stat-icon"><i class="bi bi-tag"></i></div>
+    <div class="stat-info">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value">{{ expenses | map(attribute='category') | list | unique | list | length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Search + Table -->
+<div class="content-card mt-4">
+  <div class="content-card-header">
+    <h6 class="mb-0 fw-semibold"><i class="bi bi-list-ul me-2"></i>All Expenses</h6>
+    <form method="get" action="{{ url_for('index') }}" class="search-form">
+      <div class="search-wrap">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="search" class="search-input" placeholder="Search…" value="{{ search }}">
+        {% if search %}
+        <a href="{{ url_for('index') }}" class="search-clear"><i class="bi bi-x"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  {% if expenses %}
+  <div class="table-responsive">
+    <table class="fancy-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in expenses %}
+        <tr>
+          <td class="row-num">{{ loop.index }}</td>
+          <td class="row-title">{{ exp.title }}</td>
+          <td><span class="cat-badge cat-{{ exp.category | lower | replace(' ','') }}">{{ exp.category }}</span></td>
+          <td class="row-amount">${{ "%.2f"|format(exp.amount) }}</td>
+          <td class="row-date"><i class="bi bi-calendar3 me-1"></i>{{ exp.date }}</td>
+          <td class="row-actions">
+            <a href="{{ url_for('edit', expense_id=exp.id) }}" class="action-btn edit-btn">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{{ url_for('delete', expense_id=exp.id) }}" class="d-inline"
+                  onsubmit="return confirm('Delete this expense?')">
+              <button class="action-btn delete-btn"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+    {% if search %}
+      <p>No results for <strong>"{{ search }}"</strong></p>
+    {% else %}
+      <p>No expenses yet.</p>
+      <a href="{{ url_for('add') }}" class="btn btn-add mt-2">Add your first expense</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

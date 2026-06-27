@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Add Expense – ExpenseIQ{% endblock %}
+{% block page_title %}Add Expense{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+  <div class="form-card">
+    <div class="form-card-icon bg-blue"><i class="bi bi-plus-circle-fill"></i></div>
+    <h5 class="form-card-title">New Expense</h5>
+    <p class="form-card-sub">Fill in the details below to log a new expense.</p>
+
+    <form method="post" action="{{ url_for('add') }}" novalidate>
+
+      <div class="form-group">
+        <label class="form-label-fancy">Title</label>
+        <div class="input-fancy">
+          <i class="bi bi-pencil-fill input-icon"></i>
+          <input type="text" name="title" class="input-field" placeholder="e.g. Grocery shopping"
+                 value="{{ form.get('title', '') }}" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label-fancy">Category</label>
+        <div class="input-fancy">
+          <i class="bi bi-tag-fill input-icon"></i>
+          <select name="category" class="input-field input-select" required>
+            <option value="" disabled {% if not form.get('category') %}selected{% endif %}>Select a category</option>
+            {% for cat in ["Food","Transport","Housing","Health","Entertainment","Shopping","Education","Other"] %}
+            <option value="{{ cat }}" {% if form.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label-fancy">Amount ($)</label>
+        <div class="input-fancy">
+          <i class="bi bi-currency-dollar input-icon"></i>
+          <input type="number" name="amount" class="input-field" placeholder="0.00"
+                 step="0.01" min="0.01" value="{{ form.get('amount', '') }}" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label-fancy">Date</label>
+        <div class="input-fancy">
+          <i class="bi bi-calendar3 input-icon"></i>
+          <input type="date" name="date" class="input-field" value="{{ form.get('date', '') }}" required>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-fancy btn-fancy-primary">
+          <i class="bi bi-check-lg me-1"></i> Save Expense
+        </button>
+        <a href="{{ url_for('index') }}" class="btn-fancy btn-fancy-ghost">
+          <i class="bi bi-arrow-left me-1"></i> Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
