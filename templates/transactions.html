@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Transactions – ExpenseIQ{% endblock %}
+{% block page_title %}Transactions{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <div class="content-card-header">
+    <form method="get" class="filters-form">
+      <div class="search-wrap">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="search" class="search-input" placeholder="Search…" value="{{ search }}">
+        {% if search %}<a href="{{ url_for('transactions') }}" class="search-clear"><i class="bi bi-x"></i></a>{% endif %}
+      </div>
+      <select name="type" class="filter-select" onchange="this.form.submit()">
+        <option value="">All types</option>
+        <option value="expense" {% if ftype=='expense' %}selected{% endif %}>Expense</option>
+        <option value="income" {% if ftype=='income' %}selected{% endif %}>Income</option>
+      </select>
+      <select name="category" class="filter-select" onchange="this.form.submit()">
+        <option value="">All categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if fcategory==cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+        {% for cat in income_categories %}
+        <option value="{{ cat }}" {% if fcategory==cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+      {% if search or ftype or fcategory %}
+      <a href="{{ url_for('transactions') }}" class="clear-filters">Clear</a>
+      {% endif %}
+    </form>
+    <a href="{{ url_for('add') }}" class="btn-add"><i class="bi bi-plus-lg me-1"></i>Add</a>
+  </div>
+
+  {% if transactions %}
+  <div class="table-responsive">
+    <table class="fancy-table">
+      <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Account</th><th>Type</th><th>Amount</th><th>Date</th><th>Note</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td class="row-num">{{ loop.index }}</td>
+          <td class="row-title">{{ tx.title }}</td>
+          <td><span class="cat-badge cat-{{ tx.category|lower|replace(' ','') }}">{{ tx.category }}</span></td>
+          <td class="row-meta">{{ tx.account_name or '—' }}</td>
+          <td><span class="type-badge {% if tx.type=='income' %}type-income{% else %}type-expense{% endif %}">{{ tx.type }}</span></td>
+          <td class="{% if tx.type=='income' %}row-amount-green{% else %}row-amount-red{% endif %}">
+            {% if tx.type=='income' %}+{% else %}-{% endif %}${{ "%.2f"|format(tx.amount) }}
+          </td>
+          <td class="row-date">{{ tx.date }}</td>
+          <td class="row-meta">{{ tx.note or '—' }}</td>
+          <td class="row-actions">
+            <a href="{{ url_for('edit', tid=tx.id) }}" class="action-btn edit-btn"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('delete', tid=tx.id) }}" class="d-inline" onsubmit="return confirm('Delete?')">
+              <button class="action-btn delete-btn"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-icon"><i class="bi bi-inbox"></i></div><p>No transactions found.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

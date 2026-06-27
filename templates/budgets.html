@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Budgets – ExpenseIQ{% endblock %}
+{% block page_title %}Budgets{% endblock %}
+
+{% block content %}
+<div class="row-layout">
+  <div class="content-card flex-1">
+    <div class="content-card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-bullseye me-2"></i>Monthly Budgets — {{ this_month }}</h6></div>
+    {% if budget_data %}
+    {% for b in budget_data %}
+    <div class="budget-full-row">
+      <div class="budget-full-info">
+        <span class="cat-badge cat-{{ b.category|lower|replace(' ','') }}">{{ b.category }}</span>
+        <span class="budget-amounts">${{ "%.2f"|format(b.spent) }} spent of ${{ "%.2f"|format(b.budget) }}</span>
+      </div>
+      <div class="budget-track" style="margin:6px 0">
+        <div class="budget-fill {% if b.pct>=90 %}fill-danger{% elif b.pct>=70 %}fill-warning{% else %}fill-ok{% endif %}" style="width:{{ b.pct }}%"></div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="budget-pct {% if b.pct>=90 %}red{% elif b.pct>=70 %}yellow{% else %}green{% endif %}">{{ b.pct }}% used</span>
+        <form method="post" action="{{ url_for('delete_budget', bid=b.id) }}" class="d-inline" onsubmit="return confirm('Remove budget?')">
+          <button class="action-btn delete-btn"><i class="bi bi-trash"></i></button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="empty-icon"><i class="bi bi-bullseye"></i></div><p>No budgets set for this month.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="form-card-sm">
+    <div class="form-card-icon bg-green"><i class="bi bi-bullseye"></i></div>
+    <h5 class="form-card-title">Set Budget</h5>
+    <p class="form-card-sub">Set a spending limit per category.</p>
+    <form method="post" action="{{ url_for('budgets') }}">
+      <div class="form-group">
+        <label class="form-label-fancy">Category</label>
+        <div class="input-fancy">
+          <i class="bi bi-tag-fill input-icon"></i>
+          <select name="category" class="input-field input-select" required>
+            <option value="" disabled selected>Select category</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label-fancy">Monthly Limit ($)</label>
+        <div class="input-fancy">
+          <i class="bi bi-currency-dollar input-icon"></i>
+          <input type="number" name="amount" class="input-field" placeholder="0.00" step="0.01" min="1" required>
+        </div>
+      </div>
+      <button type="submit" class="btn-fancy btn-fancy-primary w-100"><i class="bi bi-check-lg me-1"></i>Set Budget</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

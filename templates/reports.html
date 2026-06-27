@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Reports – ExpenseIQ{% endblock %}
+{% block page_title %}Monthly Reports{% endblock %}
+
+{% block content %}
+<!-- Month selector -->
+<form method="get" class="month-form mb-4">
+  <div class="input-fancy" style="max-width:220px">
+    <i class="bi bi-calendar3 input-icon"></i>
+    <input type="month" name="month" class="input-field" value="{{ selected_month }}" onchange="this.form.submit()">
+  </div>
+</form>
+
+<!-- Summary cards -->
+<div class="stats-grid mb-4">
+  <div class="stat-card">
+    <div class="stat-icon bg-green"><i class="bi bi-arrow-down-left"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Income</div>
+      <div class="stat-value green">${{ "%.2f"|format(income) }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon bg-red"><i class="bi bi-arrow-up-right"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Expenses</div>
+      <div class="stat-value red">${{ "%.2f"|format(expenses) }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon {% if savings >= 0 %}bg-green{% else %}bg-red{% endif %}"><i class="bi bi-piggy-bank"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Savings</div>
+      <div class="stat-value {% if savings >= 0 %}green{% else %}red{% endif %}">${{ "%.2f"|format(savings) }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon bg-blue"><i class="bi bi-receipt"></i></div>
+    <div class="stat-body">
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value">{{ tx_count }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row-layout">
+  <!-- Category breakdown -->
+  <div class="content-card flex-1">
+    <div class="content-card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-pie-chart me-2"></i>Spending by Category</h6></div>
+    {% if category_rows %}
+    {% for row in category_rows %}
+    <div class="report-cat-row">
+      <span class="cat-badge cat-{{ row.category|lower|replace(' ','') }}">{{ row.category }}</span>
+      <div class="report-bar-wrap">
+        <div class="report-bar" style="width:{{ row.pct }}%"></div>
+      </div>
+      <span class="report-cat-amount">${{ "%.2f"|format(row.total) }}</span>
+      <span class="report-cat-pct">{{ row.pct }}%</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="empty-icon"><i class="bi bi-pie-chart"></i></div><p>No expense data for this month.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Donut chart -->
+  <div class="content-card" style="min-width:280px;max-width:340px;align-self:flex-start">
+    <div class="content-card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-donut me-2"></i>Category Split</h6></div>
+    <div style="padding:1rem">
+      <canvas id="reportDonut" height="260"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Top transactions -->
+<div class="content-card mt-4">
+  <div class="content-card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-list-ul me-2"></i>All Transactions — {{ selected_month }}</h6></div>
+  {% if month_txs %}
+  <div class="table-responsive">
+    <table class="fancy-table">
+      <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Type</th><th>Amount</th><th>Date</th><th>Note</th></tr></thead>
+      <tbody>
+        {% for tx in month_txs %}
+        <tr>
+          <td class="row-num">{{ loop.index }}</td>
+          <td class="row-title">{{ tx.title }}</td>
+          <td><span class="cat-badge cat-{{ tx.category|lower|replace(' ','') }}">{{ tx.category }}</span></td>
+          <td><span class="type-badge {% if tx.type=='income' %}type-income{% else %}type-expense{% endif %}">{{ tx.type }}</span></td>
+          <td class="{% if tx.type=='income' %}row-amount-green{% else %}row-amount-red{% endif %}">
+            {% if tx.type=='income' %}+{% else %}-{% endif %}${{ "%.2f"|format(tx.amount) }}
+          </td>
+          <td class="row-date">{{ tx.date }}</td>
+          <td class="row-meta">{{ tx.note or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="empty-icon"><i class="bi bi-inbox"></i></div><p>No transactions this month.</p></div>
+  {% endif %}
+</div>
+
+<script>
+(function(){
+  const data = {{ chart_data|tojson }};
+  if(!data.labels.length) return;
+  new Chart(document.getElementById('reportDonut'), {
+    type:'doughnut',
+    data:{
+      labels: data.labels,
+      datasets:[{data:data.values, backgroundColor:['#00e676','#f44336','#ff9800','#2196f3','#9c27b0','#00bcd4','#ff5722','#8bc34a','#ffc107','#607d8b'], borderWidth:0, hoverOffset:6}]
+    },
+    options:{plugins:{legend:{position:'bottom',labels:{color:'#b0bec5',font:{size:11},boxWidth:12}}},cutout:'65%'}
+  });
+})();
+</script>
+{% endblock %}

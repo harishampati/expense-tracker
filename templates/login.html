@@ -2,35 +2,43 @@
 {% block title %}Login – ExpenseIQ{% endblock %}
 
 {% block auth_content %}
-<div class="auth-wrapper">
+<div class="auth-page">
   <div class="auth-card">
-    <div class="auth-logo"><i class="bi bi-piggy-bank-fill"></i></div>
-    <h4 class="auth-title">Welcome Back</h4>
-    <p class="auth-sub">Log in to your ExpenseIQ account</p>
+    <div class="auth-logo">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="14" fill="#00e676" fill-opacity="0.15"/>
+        <path d="M14 34 L24 14 L34 34" stroke="#00e676" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M17 28 H31" stroke="#00e676" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="24" cy="14" r="2.5" fill="#00e676"/>
+      </svg>
+    </div>
+    <h4 class="auth-title">Welcome back</h4>
+    <p class="auth-sub">Sign in to your ExpenseIQ account</p>
 
-    <form method="post" action="{{ url_for('login') }}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="alert-fancy alert-{{ 'success' if cat=='success' else 'error' }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('login') }}" novalidate>
       <div class="form-group">
         <label class="form-label-fancy">Username</label>
         <div class="input-fancy">
           <i class="bi bi-person-fill input-icon"></i>
-          <input type="text" name="username" class="input-field"
-                 placeholder="Your username" value="{{ form.get('username','') }}" required>
+          <input type="text" name="username" class="input-field" placeholder="Your username" required autofocus>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label-fancy">Password</label>
         <div class="input-fancy">
           <i class="bi bi-lock-fill input-icon"></i>
-          <input type="password" name="password" class="input-field"
-                 placeholder="Your password" required>
+          <input type="password" name="password" class="input-field" placeholder="••••••••" required>
         </div>
       </div>
-      <button type="submit" class="btn-fancy btn-fancy-primary w-100 mt-3">
-        <i class="bi bi-box-arrow-in-right me-1"></i> Login
-      </button>
+      <button type="submit" class="btn-fancy btn-fancy-primary w-100 mt-2"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</button>
     </form>
-
-    <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Sign up</a></p>
+    <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
   </div>
 </div>
-{% endblock auth_content %}
+{% endblock %}

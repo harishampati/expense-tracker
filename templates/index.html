@@ -3,202 +3,166 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-
-<!-- Stats -->
 <div class="stats-grid">
-  <div class="stat-card stat-blue">
-    <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+  <div class="stat-card">
+    <div class="stat-icon si-green"><i class="bi bi-wallet2"></i></div>
     <div class="stat-info">
-      <div class="stat-label">Total Spent</div>
-      <div class="stat-value">${{ "%.2f"|format(total) }}</div>
+      <div class="stat-label">Total Balance</div>
+      <div class="stat-value green">${{ "%.2f"|format(total_balance) }}</div>
     </div>
   </div>
-  <div class="stat-card stat-purple">
-    <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+  <div class="stat-card">
+    <div class="stat-icon si-teal"><i class="bi bi-arrow-up-circle-fill"></i></div>
     <div class="stat-info">
-      <div class="stat-label">Total Expenses</div>
-      <div class="stat-value">{{ expenses|length }}</div>
+      <div class="stat-label">Month Income</div>
+      <div class="stat-value green">${{ "%.2f"|format(month_income) }}</div>
     </div>
   </div>
-  <div class="stat-card stat-green">
-    <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+  <div class="stat-card">
+    <div class="stat-icon si-red"><i class="bi bi-arrow-down-circle-fill"></i></div>
     <div class="stat-info">
-      <div class="stat-label">This Month</div>
-      <div class="stat-value">${{ "%.2f"|format(month_total) }}</div>
+      <div class="stat-label">Month Expenses</div>
+      <div class="stat-value red">${{ "%.2f"|format(month_expense) }}</div>
     </div>
   </div>
-  <div class="stat-card {% if budget > 0 and month_total > budget %}stat-red{% else %}stat-orange{% endif %}">
-    <div class="stat-icon"><i class="bi bi-bullseye"></i></div>
+  <div class="stat-card">
+    <div class="stat-icon si-blue"><i class="bi bi-piggy-bank-fill"></i></div>
     <div class="stat-info">
-      <div class="stat-label">Monthly Budget</div>
-      <div class="stat-value">{% if budget > 0 %}${{ "%.2f"|format(budget) }}{% else %}Not set{% endif %}</div>
+      <div class="stat-label">Month Savings</div>
+      <div class="stat-value">${{ "%.2f"|format(month_income - month_expense) }}</div>
     </div>
   </div>
 </div>
 
-<!-- Budget progress -->
-{% if budget > 0 %}
-<div class="budget-bar-wrap mt-4">
-  {% set pct = [(month_total / budget * 100), 100]|min|int %}
-  <div class="d-flex justify-content-between mb-1">
-    <span class="small text-muted">Budget used: ${{ "%.2f"|format(month_total) }} / ${{ "%.2f"|format(budget) }}</span>
-    <span class="small fw-bold {% if pct >= 90 %}text-danger{% elif pct >= 70 %}text-warning{% else %}text-success{% endif %}">{{ pct }}%</span>
+<!-- Accounts -->
+{% if accounts %}
+<div class="section-header mt-4"><span>My Accounts</span><a href="{{ url_for('accounts') }}" class="see-all">Manage</a></div>
+<div class="accounts-grid">
+  {% for acc in accounts %}
+  <div class="account-card">
+    <div class="acc-type-icon">
+      {% if acc.type == 'Bank' %}<i class="bi bi-bank"></i>
+      {% elif acc.type == 'Cash' %}<i class="bi bi-cash-stack"></i>
+      {% elif acc.type == 'Credit Card' %}<i class="bi bi-credit-card-fill"></i>
+      {% else %}<i class="bi bi-wallet2"></i>{% endif %}
+    </div>
+    <div class="acc-info">
+      <div class="acc-name">{{ acc.name }}</div>
+      <div class="acc-type">{{ acc.type }}</div>
+    </div>
+    <div class="acc-balance {% if acc.balance < 0 %}red{% else %}green{% endif %}">${{ "%.2f"|format(acc.balance) }}</div>
   </div>
-  <div class="budget-track">
-    <div class="budget-fill {% if pct >= 90 %}fill-danger{% elif pct >= 70 %}fill-warning{% else %}fill-ok{% endif %}"
-         style="width: {{ pct }}%"></div>
-  </div>
+  {% endfor %}
+  <a href="{{ url_for('accounts') }}" class="account-card add-account-card">
+    <i class="bi bi-plus-circle"></i><span>Add Account</span>
+  </a>
 </div>
+{% else %}
+<div class="section-header mt-4"><span>My Accounts</span></div>
+<a href="{{ url_for('accounts') }}" class="empty-accounts-btn"><i class="bi bi-plus-circle me-2"></i>Add your first account</a>
 {% endif %}
 
 <!-- Charts -->
 <div class="charts-grid mt-4">
   <div class="chart-card">
+    <div class="chart-title"><i class="bi bi-graph-up me-2"></i>Income vs Expenses</div>
+    <div class="chart-body"><canvas id="monthlyChart"></canvas></div>
+  </div>
+  <div class="chart-card">
     <div class="chart-title"><i class="bi bi-pie-chart-fill me-2"></i>Spending by Category</div>
     <div class="chart-body"><canvas id="categoryChart"></canvas></div>
   </div>
-  <div class="chart-card">
-    <div class="chart-title"><i class="bi bi-graph-up me-2"></i>Monthly Spending</div>
-    <div class="chart-body"><canvas id="monthlyChart"></canvas></div>
-  </div>
 </div>
 
-<!-- Expenses Table -->
-<div class="content-card mt-4">
-  <div class="content-card-header">
-    <h6 class="mb-0 fw-semibold"><i class="bi bi-list-ul me-2"></i>All Expenses</h6>
-    <div class="d-flex gap-2 flex-wrap">
-      <form method="get" action="{{ url_for('index') }}" class="search-form">
-        <div class="search-wrap">
-          <i class="bi bi-search search-icon"></i>
-          <input type="text" name="search" class="search-input" placeholder="Search…" value="{{ search }}">
-          {% if search %}<a href="{{ url_for('index') }}" class="search-clear"><i class="bi bi-x"></i></a>{% endif %}
-        </div>
-      </form>
+<!-- Budget overview -->
+{% if budget_data %}
+<div class="section-header mt-4"><span>Budget Overview</span><a href="{{ url_for('budgets') }}" class="see-all">Manage</a></div>
+<div class="content-card">
+  {% for b in budget_data %}
+  <div class="budget-row">
+    <div class="budget-row-info">
+      <span class="cat-badge cat-{{ b.category|lower|replace(' ','') }}">{{ b.category }}</span>
+      <span class="budget-amounts">${{ "%.0f"|format(b.spent) }} / ${{ "%.0f"|format(b.budget) }}</span>
+    </div>
+    <div class="budget-track">
+      <div class="budget-fill {% if b.pct >= 90 %}fill-danger{% elif b.pct >= 70 %}fill-warning{% else %}fill-ok{% endif %}" style="width:{{ b.pct }}%"></div>
+    </div>
+    <span class="budget-pct {% if b.pct >= 90 %}red{% elif b.pct >= 70 %}yellow{% else %}green{% endif %}">{{ b.pct }}%</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
-      <!-- Budget setter -->
-      <form method="post" action="{{ url_for('set_budget') }}" class="d-flex gap-1">
-        <input type="number" name="budget" class="search-input" placeholder="Set budget…"
-               style="width:140px" step="0.01" min="0" value="{{ budget if budget > 0 else '' }}">
-        <button class="action-btn edit-btn px-3" style="width:auto;border-radius:10px">Set</button>
-      </form>
+<!-- Recurring -->
+{% if recurring %}
+<div class="section-header mt-4"><span>Upcoming Recurring</span><a href="{{ url_for('recurring') }}" class="see-all">Manage</a></div>
+<div class="content-card">
+  {% for r in recurring %}
+  <div class="rec-row">
+    <div class="rec-icon {% if r.type=='income' %}ri-green{% else %}ri-red{% endif %}">
+      <i class="bi bi-arrow-repeat"></i>
+    </div>
+    <div class="rec-info">
+      <div class="rec-title">{{ r.title }}</div>
+      <div class="rec-meta">{{ r.frequency }} · {{ r.next_date }}</div>
+    </div>
+    <div class="rec-amount {% if r.type=='income' %}green{% else %}red{% endif %}">
+      {% if r.type=='income' %}+{% else %}-{% endif %}${{ "%.2f"|format(r.amount) }}
     </div>
   </div>
-
-  {% if expenses %}
-  <div class="table-responsive">
-    <table class="fancy-table">
-      <thead>
-        <tr><th>#</th><th>Title</th><th>Category</th><th>Amount</th><th>Date</th><th>Note</th><th>Actions</th></tr>
-      </thead>
-      <tbody>
-        {% for exp in expenses %}
-        <tr>
-          <td class="row-num">{{ loop.index }}</td>
-          <td class="row-title">{{ exp.title }}</td>
-          <td><span class="cat-badge cat-{{ exp.category|lower|replace(' ','') }}">{{ exp.category }}</span></td>
-          <td class="row-amount">${{ "%.2f"|format(exp.amount) }}</td>
-          <td class="row-date"><i class="bi bi-calendar3 me-1"></i>{{ exp.date }}</td>
-          <td class="row-note">{{ exp.note or '—' }}</td>
-          <td class="row-actions">
-            <a href="{{ url_for('edit', expense_id=exp.id) }}" class="action-btn edit-btn"><i class="bi bi-pencil"></i></a>
-            <form method="post" action="{{ url_for('delete', expense_id=exp.id) }}" class="d-inline"
-                  onsubmit="return confirm('Delete this expense?')">
-              <button class="action-btn delete-btn"><i class="bi bi-trash"></i></button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="empty-state">
-    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-    <p>{% if search %}No results for <strong>"{{ search }}"</strong>{% else %}No expenses yet. <a href="{{ url_for('add') }}">Add your first one!</a>{% endif %}</p>
-  </div>
-  {% endif %}
+  {% endfor %}
 </div>
+{% endif %}
 
+<!-- Recent Transactions -->
+<div class="section-header mt-4"><span>Recent Transactions</span><a href="{{ url_for('transactions') }}" class="see-all">View all</a></div>
+{% if transactions %}
+<div class="content-card">
+  {% for tx in transactions %}
+  <div class="tx-row">
+    <div class="tx-icon {% if tx.type=='income' %}txi-green{% else %}txi-red{% endif %}">
+      <i class="bi bi-{% if tx.type=='income' %}arrow-down-left{% else %}arrow-up-right{% endif %}"></i>
+    </div>
+    <div class="tx-info">
+      <div class="tx-title">{{ tx.title }}</div>
+      <div class="tx-meta">{{ tx.category }}{% if tx.account_name %} · {{ tx.account_name }}{% endif %} · {{ tx.date }}</div>
+    </div>
+    <div class="tx-amount {% if tx.type=='income' %}green{% else %}red{% endif %}">
+      {% if tx.type=='income' %}+{% else %}-{% endif %}${{ "%.2f"|format(tx.amount) }}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state"><div class="empty-icon"><i class="bi bi-inbox"></i></div><p>No transactions yet. <a href="{{ url_for('add') }}">Add your first one!</a></p></div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-const GREEN  = '#00e676';
-const GREEN2 = '#00c853';
-const GREEN3 = '#69f0ae';
-const GREEN4 = '#1de9b6';
-const GREEN5 = '#b9f6ca';
-const GREEN6 = '#00bfa5';
-const GREEN7 = '#76ff03';
-const GREEN8 = '#64dd17';
-
-// Category donut chart
-fetch('/api/chart/category')
-  .then(r => r.json())
-  .then(data => {
-    if (!data.labels.length) return;
-    new Chart(document.getElementById('categoryChart'), {
-      type: 'doughnut',
-      data: {
-        labels: data.labels,
-        datasets: [{
-          data: data.data,
-          backgroundColor: [GREEN,GREEN2,GREEN3,GREEN4,GREEN5,GREEN6,GREEN7,GREEN8],
-          borderColor: '#111',
-          borderWidth: 3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: '#aaa', font: { family: 'Inter' } } },
-          tooltip: {
-            callbacks: {
-              label: ctx => ` $${ctx.parsed.toFixed(2)}`
-            }
-          }
-        }
-      }
-    });
+const G = '#00e676', G2 = '#00c853', G3 = '#69f0ae', RED = '#ff5252';
+fetch('/api/chart/monthly').then(r=>r.json()).then(data=>{
+  if(!data.labels.length) return;
+  new Chart(document.getElementById('monthlyChart'),{
+    type:'bar',
+    data:{
+      labels:data.labels,
+      datasets:[
+        {label:'Income',data:data.income,backgroundColor:'rgba(0,230,118,0.7)',borderRadius:4},
+        {label:'Expenses',data:data.expense,backgroundColor:'rgba(255,82,82,0.7)',borderRadius:4}
+      ]
+    },
+    options:{responsive:true,plugins:{legend:{labels:{color:'#aaa',font:{family:'Inter'}}}},
+      scales:{x:{ticks:{color:'#555'},grid:{color:'#1a1a1a'}},y:{ticks:{color:'#555',callback:v=>'$'+v},grid:{color:'#1a1a1a'}}}}
   });
-
-// Monthly line chart
-fetch('/api/chart/monthly')
-  .then(r => r.json())
-  .then(data => {
-    if (!data.labels.length) return;
-    new Chart(document.getElementById('monthlyChart'), {
-      type: 'line',
-      data: {
-        labels: data.labels,
-        datasets: [{
-          label: 'Monthly Spending',
-          data: data.data,
-          borderColor: GREEN,
-          backgroundColor: 'rgba(0,230,118,0.08)',
-          pointBackgroundColor: GREEN,
-          pointRadius: 5,
-          tension: 0.4,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { labels: { color: '#aaa', font: { family: 'Inter' } } },
-          tooltip: {
-            callbacks: {
-              label: ctx => ` $${ctx.parsed.y.toFixed(2)}`
-            }
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#555' }, grid: { color: '#1a1a1a' } },
-          y: { ticks: { color: '#555', callback: v => '$'+v }, grid: { color: '#1a1a1a' } }
-        }
-      }
-    });
+});
+fetch('/api/chart/category').then(r=>r.json()).then(data=>{
+  if(!data.labels.length) return;
+  new Chart(document.getElementById('categoryChart'),{
+    type:'doughnut',
+    data:{labels:data.labels,datasets:[{data:data.data,backgroundColor:[G,G2,G3,'#1de9b6','#b9f6ca','#00bfa5','#76ff03','#64dd17'],borderColor:'#111',borderWidth:3}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#aaa',font:{family:'Inter'}}},tooltip:{callbacks:{label:ctx=>` $${ctx.parsed.toFixed(2)}`}}}}
   });
+});
 </script>
 {% endblock %}

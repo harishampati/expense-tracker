@@ -1,43 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Edit Expense – ExpenseIQ{% endblock %}
-{% block page_title %}Edit Expense{% endblock %}
+{% block title %}Edit Transaction – ExpenseIQ{% endblock %}
+{% block page_title %}Edit Transaction{% endblock %}
 
 {% block content %}
 <div class="form-wrapper">
   <div class="form-card">
     <div class="form-card-icon bg-orange"><i class="bi bi-pencil-square"></i></div>
-    <h5 class="form-card-title">Edit Expense</h5>
-    <p class="form-card-sub">Update the details of your expense.</p>
+    <h5 class="form-card-title">Edit Transaction</h5>
+    <p class="form-card-sub">Update the details below.</p>
 
-    <form method="post" action="{{ url_for('edit', expense_id=expense.id) }}" novalidate>
+    <form method="post" action="{{ url_for('edit', tid=tx.id) }}" novalidate>
+      <div class="type-toggle mb-4">
+        <label class="toggle-opt">
+          <input type="radio" name="type" value="expense" {% if form.get('type','expense')=='expense' %}checked{% endif %}>
+          <span class="toggle-btn"><i class="bi bi-arrow-up-right me-1"></i>Expense</span>
+        </label>
+        <label class="toggle-opt">
+          <input type="radio" name="type" value="income" {% if form.get('type')=='income' %}checked{% endif %}>
+          <span class="toggle-btn income"><i class="bi bi-arrow-down-left me-1"></i>Income</span>
+        </label>
+      </div>
+
       <div class="form-group">
         <label class="form-label-fancy">Title</label>
         <div class="input-fancy">
           <i class="bi bi-pencil-fill input-icon"></i>
-          <input type="text" name="title" class="input-field" placeholder="e.g. Grocery shopping"
-                 value="{{ form.get('title','') }}" required>
+          <input type="text" name="title" class="input-field" value="{{ form.get('title','') }}" required>
         </div>
       </div>
+
       <div class="form-group">
         <label class="form-label-fancy">Category</label>
         <div class="input-fancy">
           <i class="bi bi-tag-fill input-icon"></i>
           <select name="category" class="input-field input-select" required>
-            <option value="" disabled>Select a category</option>
-            {% for cat in ["Food","Transport","Housing","Health","Entertainment","Shopping","Education","Other"] %}
-            <option value="{{ cat }}" {% if form.get('category')==cat %}selected{% endif %}>{{ cat }}</option>
-            {% endfor %}
+            <optgroup label="Expense">
+              {% for cat in categories %}
+              <option value="{{ cat }}" {% if form.get('category')==cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="Income">
+              {% for cat in income_categories %}
+              <option value="{{ cat }}" {% if form.get('category')==cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </optgroup>
           </select>
         </div>
       </div>
+
       <div class="form-group">
         <label class="form-label-fancy">Amount ($)</label>
         <div class="input-fancy">
           <i class="bi bi-currency-dollar input-icon"></i>
-          <input type="number" name="amount" class="input-field" placeholder="0.00"
-                 step="0.01" min="0.01" value="{{ form.get('amount','') }}" required>
+          <input type="number" name="amount" class="input-field" step="0.01" min="0.01" value="{{ form.get('amount','') }}" required>
         </div>
       </div>
+
+      <div class="form-group">
+        <label class="form-label-fancy">Account</label>
+        <div class="input-fancy">
+          <i class="bi bi-bank input-icon"></i>
+          <select name="account_id" class="input-field input-select">
+            <option value="">No account</option>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}" {% if form.get('account_id')|string==acc.id|string %}selected{% endif %}>{{ acc.name }} ({{ acc.type }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
       <div class="form-group">
         <label class="form-label-fancy">Date</label>
         <div class="input-fancy">
@@ -45,21 +76,18 @@
           <input type="date" name="date" class="input-field" value="{{ form.get('date','') }}" required>
         </div>
       </div>
+
       <div class="form-group">
         <label class="form-label-fancy">Note (optional)</label>
         <div class="input-fancy">
           <i class="bi bi-chat-left-text-fill input-icon"></i>
-          <input type="text" name="note" class="input-field" placeholder="Any extra details…"
-                 value="{{ form.get('note','') }}">
+          <input type="text" name="note" class="input-field" placeholder="Any extra details…" value="{{ form.get('note','') }}">
         </div>
       </div>
+
       <div class="form-actions">
-        <button type="submit" class="btn-fancy btn-fancy-warning">
-          <i class="bi bi-check-lg me-1"></i> Update Expense
-        </button>
-        <a href="{{ url_for('index') }}" class="btn-fancy btn-fancy-ghost">
-          <i class="bi bi-arrow-left me-1"></i> Cancel
-        </a>
+        <button type="submit" class="btn-fancy btn-fancy-warning"><i class="bi bi-check-lg me-1"></i>Update</button>
+        <a href="{{ url_for('transactions') }}" class="btn-fancy btn-fancy-ghost"><i class="bi bi-arrow-left me-1"></i>Cancel</a>
       </div>
     </form>
   </div>

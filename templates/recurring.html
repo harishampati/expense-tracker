@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Recurring – ExpenseIQ{% endblock %}
+{% block page_title %}Recurring Transactions{% endblock %}
+
+{% block content %}
+<div class="row-layout">
+  <div class="content-card flex-1">
+    <div class="content-card-header"><h6 class="mb-0 fw-semibold"><i class="bi bi-arrow-repeat me-2"></i>Scheduled Transactions</h6></div>
+    {% if recurrings %}
+    {% for r in recurrings %}
+    <div class="rec-row">
+      <div class="rec-icon {% if r.type=='income' %}rec-icon-green{% else %}rec-icon-red{% endif %}">
+        <i class="bi bi-arrow-repeat"></i>
+      </div>
+      <div class="rec-info">
+        <div class="rec-title">{{ r.title }}</div>
+        <div class="rec-meta">{{ r.category }} &middot; {{ r.frequency }} &middot; next {{ r.next_date }}</div>
+      </div>
+      <div class="rec-amount {% if r.type=='income' %}row-amount-green{% else %}row-amount-red{% endif %}">
+        {% if r.type=='income' %}+{% else %}-{% endif %}${{ "%.2f"|format(r.amount) }}
+      </div>
+      <form method="post" action="{{ url_for('delete_recurring', rid=r.id) }}" class="d-inline" onsubmit="return confirm('Delete recurring?')">
+        <button class="action-btn delete-btn"><i class="bi bi-trash"></i></button>
+      </form>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="empty-icon"><i class="bi bi-arrow-repeat"></i></div><p>No recurring transactions set.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="form-card-sm">
+    <div class="form-card-icon bg-blue"><i class="bi bi-arrow-repeat"></i></div>
+    <h5 class="form-card-title">Add Recurring</h5>
+    <p class="form-card-sub">Automate repeating transactions.</p>
+    <form method="post" action="{{ url_for('recurring') }}">
+      <div class="type-toggle mb-3">
+        <label class="toggle-opt">
+          <input type="radio" name="type" value="expense" checked>
+          <span class="toggle-btn"><i class="bi bi-arrow-up-right me-1"></i>Expense</span>
+        </label>
+        <label class="toggle-opt">
+          <input type="radio" name="type" value="income">
+          <span class="toggle-btn income"><i class="bi bi-arrow-down-left me-1"></i>Income</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label-fancy">Title</label>
+        <div class="input-fancy">
+          <i class="bi bi-pencil-fill input-icon"></i>
+          <input type="text" name="title" class="input-field" placeholder="e.g. Netflix" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label-fancy">Category</label>
+        <div class="input-fancy">
+          <i class="bi bi-tag-fill input-icon"></i>
+          <select name="category" class="input-field input-select" required>
+            <option value="" disabled selected>Select category</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+            {% for cat in income_categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label-fancy">Amount ($)</label>
+        <div class="input-fancy">
+          <i class="bi bi-currency-dollar input-icon"></i>
+          <input type="number" name="amount" class="input-field" placeholder="0.00" step="0.01" min="0.01" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label-fancy">Frequency</label>
+        <div class="input-fancy">
+          <i class="bi bi-calendar3 input-icon"></i>
+          <select name="frequency" class="input-field input-select">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label-fancy">Start Date</label>
+        <div class="input-fancy">
+          <i class="bi bi-calendar-check input-icon"></i>
+          <input type="date" name="next_date" class="input-field" required>
+        </div>
+      </div>
+      <button type="submit" class="btn-fancy btn-fancy-primary w-100"><i class="bi bi-check-lg me-1"></i>Save</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
