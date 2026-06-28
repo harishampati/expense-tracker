@@ -1,89 +1,69 @@
-# Expense Tracker
+ExpenseIQ - Personal Finance Tracker
 
-A simple, clean web application for tracking personal expenses — built with Python, Flask, SQLite, and Bootstrap 5.
+A full-featured personal finance web app built with Python and Flask. Track income and expenses, manage multiple accounts, and get a clear picture of your spending.
 
 ## Features
 
-- Dashboard with a full list of expenses and total amount spent
-- Add, edit, and delete expenses
-- Search expenses by title or category
-- Flash messages for user feedback
-- Fully responsive layout (mobile-friendly)
+- User accounts - register, log in, and keep your data private
+- Multiple accounts - manage different wallets, bank accounts, or cash pots
+- Expense and income tracking - log transactions with categories, dates, and notes
+- Dashboard - see your total balance and recent transactions at a glance
+- CSV export - download your transaction history as a spreadsheet
+- Responsive design - works on desktop and mobile
+- One-click launcher - Start Expense Tracker.bat opens the app instantly on Windows
 
 ## Tech Stack
 
-| Layer     | Technology          |
-|-----------|---------------------|
-| Backend   | Python 3, Flask     |
-| Database  | SQLite (built-in)   |
-| Frontend  | HTML, Bootstrap 5   |
-| Templating| Jinja2              |
+- Backend: Python 3, Flask
+- Auth: Flask-Login, Werkzeug
+- Database: SQLite
+- Frontend: HTML, Jinja2, Bootstrap
+- Deployment: Railway (Procfile included)
 
 ## Project Structure
 
-```
-expense_tracker/
-├── app.py              # Flask application & routes
-├── database.db         # SQLite database (auto-created on first run)
-├── requirements.txt    # Python dependencies
-├── README.md
-├── templates/
-│   ├── base.html       # Shared layout (navbar, flash messages, footer)
-│   ├── index.html      # Dashboard
-│   ├── add.html        # Add expense form
-│   └── edit.html       # Edit expense form
-└── static/
-    └── style.css       # Custom styles
-```
+expense-tracker/
+- app.py                     - All routes, models, and database logic
+- requirements.txt           - Python dependencies
+- Procfile                   - Railway deployment config
+- launch_app.pyw             - Silent Windows launcher
+- Start Expense Tracker.bat  - One-click Windows startup script
+- templates/                 - Jinja2 HTML templates
+- static/                    - CSS and static assets
 
-## Setup & Run
+## Setup and Run
 
-### 1. Clone or download the project
+1. Clone the repository
+   git clone https://github.com/harishampati/expense-tracker.git
+   cd expense-tracker
 
-```bash
-cd expense_tracker
-```
+2. Create a virtual environment
+   python -m venv venv
+   venv\Scripts\activate       (Windows)
+   source venv/bin/activate    (macOS / Linux)
 
-### 2. (Optional) Create a virtual environment
+3. Install dependencies
+   pip install -r requirements.txt
 
-```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
-```
+4. Run the app
+   python app.py
 
-### 3. Install dependencies
+Then open http://127.0.0.1:5000 in your browser.
+On Windows you can also double-click Start Expense Tracker.bat to launch it instantly.
 
-```bash
-pip install -r requirements.txt
-```
+## Expense Categories
 
-### 4. Run the application
+Food, Transport, Housing, Health, Entertainment, Shopping, Education, Other
 
-```bash
-python app.py
-```
+## Income Categories
 
-### 5. Open in your browser
+Salary, Freelance, Investment, Gift, Other Income
 
-```
-http://127.0.0.1:5000
-```
+## Deployment
 
-The SQLite database (`database.db`) is created automatically on first run — no setup required.
+The project includes a Procfile for one-command deployment to Railway (https://railway.app).
+The app automatically detects the Railway environment and stores the SQLite database in the correct persistent volume.
 
-## Expense Fields
+## License
 
-| Field    | Type   | Description               |
-|----------|--------|---------------------------|
-| Title    | Text   | Short description          |
-| Category | Select | Food, Transport, Health… |
-| Amount   | Number | Cost in dollars            |
-| Date     | Date   | When the expense occurred  |
-
-## Notes
-
-- No external database required — SQLite is part of Python's standard library.
-- Debug mode is enabled by default (`debug=True`). Disable it in production.
+MIT - free to use and modify.
